@@ -1,24 +1,27 @@
 import re
 import json
 from PTTCommons import PTTCommons
+from HTMLCommons import HTMLCommons
 
 class PTTPostParser:
 
 	def __init__(self, post, soup):
 		self.pttPost = post
-		self.contentContainer = soup.find(PTTCommons.HtmlClassTags.CONTENT_CONTAINER)
-		self.ipInfoContainer = soup.find(re.compile(PTTCommons.HtmlClassTags.POST_SOURCE_MSG))
+		self.contentContainer = soup.find(id=PTTCommons.HtmlClassTags.CONTENT_CONTAINER)
+		self.ipInfoContainer = soup.find(text=re.compile(PTTCommons.HtmlClassTags.POST_SOURCE_MSG))
 		self.pushMsgContainer = soup.find_all(HTMLCommons.DIVISION,PTTCommons.HtmlClassTags.PUSH)
 
 	def parse(self):
 		self.__parseAuthor()
 		self.__parseTitle()
 		self.__parseDate()
-		self.__parseIP()
+		#self.__parseIP()
+		#will reimplement afterwards
 		self.__parseContent()
 		self.__parseMsgs()
 
 	def __parseAuthor(self):
+	
 		self.pttPost.setAuthor(self.contentContainer.contents[1].contents[0].contents[1].string.replace(' ',''))
 
 	def __parseTitle(self):
@@ -27,19 +30,23 @@ class PTTPostParser:
 	def __parseDate(self):
 		self.pttPost.setDate(self.contentContainer.contents[1].contents[3].contents[1].string)
 
-	def __parseIP(self):
-		try:
-			ipAddress = re.search("[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*",str(self.ipInfoContainer)).group()
-			self.pttPost.setIP(ipAddress)
-		except:
-			self.pttPost.IP.setIP("N/A")
+	# TODO
+	# self.ipInfoContainer doesn't contain the IP address at all somehow...
+	#def __parseIP(self):
+	#	try:
+	#		ipAddress = re.search("[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*",str(self.ipInfoContainer)).group()
+	#		print(ipAddress)
+	#		self.pttPost.setIP(ipAddress)
+	#	except:
+	#		self.pttPost.IP.setIP("N/A")
 
+	#	print(self.pttPost.IP)
 	def __parseContent(self):
 		# TODO
 		# the content parsing is really messy...
 		# need a more flexible version
 		# For now, using Dien-Yang's methodology
-		content = str(self.contentContainer).contents[1]
+		content = str(self.contentContainer.contents[1])
 		content = content.split("</div>")
 		content = content[4].split("<span class=\"f2\">※ 發信站: 批踢踢實業坊(ptt.cc),")
 		self.pttPost.setContent(content[0].replace(' ','').replace('\n', '').replace('\t', ''))
@@ -49,7 +56,7 @@ class PTTPostParser:
 		# Same with __parseMsg. Too messy.
 		# Perhaps need another class for messages
 		# and, what is nu all??
-		nu all , likeCount , nlikeCount , neutralCount ,message = 0,0,0,0,0,{}
+		totalPushCount, all, likeCount, nlikeCount, neutralCount, message = 0,0,0,0,0,{}
 
 		for msgs in self.pushMsgContainer:
 			totalPushCount += 1
@@ -73,16 +80,17 @@ class PTTPostParser:
 
 		self.pttPost.setMsgCountInfo(pushCountInfo)
 
-	def storeAsJSON(self, storePath, message):
-		data = {"ID":self.pttPost.postIDString, "AUTHOR":self.pttPost.POST_ID, 
+	def storeAsJSON(self, storePath):
+		data = {"ID":self.pttPost.POST_ID, "AUTHOR":self.pttPost.AUTHOR, 
 			"TITLE":self.pttPost.TITLE, "DATE":self.pttPost.DATE,
-			"IP_ADDR":self.pttPost.IP, "CONTENT":self.pttPost.CONTENT,
+			"CONTENT":self.pttPost.CONTENT,
 			"PUSH":self.pttPost.MSG, "PUSH_COUNT":self.pttPost.MSG_COUNT_INFO}
 
-		JSONData = json.dumps(data,ensure_ascii=False,indent=4,sort_keys=True)+','
+		JSONData = json.dumps(data,ensure_ascii=False,indent=4,sort_keys=False)+','
 
 		self.__store(JSONData, storePath)
 
 	def __store(self,data,path):
+		print("---- Writing output to path ./" + path + " ----")
 		with open(path, 'a') as file:
 			file.write(data)
