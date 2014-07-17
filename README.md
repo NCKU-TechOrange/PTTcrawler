@@ -31,11 +31,11 @@ python 3.x
 ###如何使用
 --------------
 
-    $ python3 pttcrawler.py start end
+    $ python3 pttcrawler.py <BOARDNAME> <START_INDEX> <END_INDEX> <OUTPUT_PATH>
 
-start 和 end 是網址index的數字
-https://www.ptt.cc/bbs/Gossiping/index.html
-可自由決定要爬取的index範圍
+BOARDNAME: 想要爬的版
+START_INDEX / END_INDEX: 爬的網址index範圍
+OUTPUT_PATH: 最後爬下來的資料輸出的檔名(暫時只支援 .json 檔)
 
 ###example
 --------------
