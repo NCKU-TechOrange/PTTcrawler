@@ -21,5 +21,5 @@ class PTTPost:
 	def setMsg(self,message):
 		self.MSG = message
 
-	def setMsgCountInfo(self,msgCountInfo)
+	def setMsgCountInfo(self,msgCountInfo):
 		self.MSG_COUNT_INFO = msgCountInfo
